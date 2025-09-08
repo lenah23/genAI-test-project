@@ -1,12 +1,13 @@
 import { useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import axios from "axios";
+import type { IPersonInfo } from "../types";
 
 const UseUploadPDFHooks = () => {
   const [pdfContent, setPdfContent] = useState(null);
   const [error, setError] = useState("");
+  const [response, setResponse] = useState<IPersonInfo | undefined>(undefined);
   const GEMENIapiKey = import.meta.env.VITE_OPENAI_GEMENI_API_KEY;
-
 
   const handleFileChange = async (event: any) => {
     const file = event.target.files[0];
@@ -51,53 +52,44 @@ const UseUploadPDFHooks = () => {
       }
 
       setPdfContent(extractedContent);
+
+      const response = await axios.post(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        {
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Using this information, please give me an object with the following keys and the appropriate values from the information provided. Your response will not contain any odd symbols, so I can parse it to an object. Keys: name, surname, address, email and phone-number. If any information is missing, please use "Not available" as the value. Here is the information: ${extractedContent?.[0]?.content}`,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-goog-api-key": GEMENIapiKey,
+          },
+        }
+      );
+
+      setResponse(
+        JSON.parse(response.data.candidates[0].content.parts[0].text)
+      );
     } catch (err) {
       console.error("Error parsing PDF:", err);
       setError("Failed to parse the PDF file.");
       setPdfContent(null);
+    } finally {
     }
   };
-
-  const askChatGPT = async (prompt: any) => {
-  try {
-    const response = await axios.post(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-      {
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-goog-api-key": GEMENIapiKey,
-        },
-      }
-    );
-
-    // Return the response (adjust structure based on API response format)
-    return (
-      response.data.candidates[0].content.parts[0].text ||
-      "No response generated."
-    );
-  } catch (error: any) {
-    // Handle errors properly
-    console.error("Error calling Dial-E API:", error.response || error);
-    return "Sorry, I couldn’t generate a response.";
-  }
-};
 
   return {
     handleFileChange,
     error,
     pdfContent,
-    askChatGPT,
+    response,
   };
 };
 
