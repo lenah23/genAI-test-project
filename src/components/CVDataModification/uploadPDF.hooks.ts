@@ -60,7 +60,7 @@ const UseUploadPDFHooks = () => {
             {
               parts: [
                 {
-                  text: `Using this information, please give me an object with the following keys and the appropriate values from the information provided. Your response will not contain any odd symbols, so I can parse it to an object. Keys: name, surname, address, email and phone-number. If any information is missing, please use "Not available" as the value. Here is the information: ${extractedContent?.[0]?.content}`,
+                  text: `Using this information, please give me an object with the following keys and the appropriate values from the information provided. Your response will not contain any odd symbols, so I can parse it to an object. Keys: name, surname, address, email, image and phone-number. You need to find the image in cv and give back its url. If any information is missing, please use "Not available" as the value. Here is the information: ${extractedContent?.[0]?.content}`,
                 },
               ],
             },

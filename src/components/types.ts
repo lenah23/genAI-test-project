@@ -4,4 +4,5 @@ export interface IPersonInfo {
   address: string;
   email: string;
   "phone-number": string;
+  image: string;
 }
